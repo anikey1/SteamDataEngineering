@@ -35,9 +35,7 @@ HGS = (positive_review_pct × 0.50) + (obscurity_score × 0.30) + (price_score �
 
 ## Architecture
 
-```
-
-```
+![Architecture diagram](docs/architecture.jpeg)
 
 **Tech Stack:**
 
