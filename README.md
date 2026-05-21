@@ -4,7 +4,18 @@ A data engineering pipeline that automatically identifies underrated games on St
 
 ---
 
-## 📌 What is it?
+## Why this project?
+
+Steam has over 50,000 games available, but most users only discover titles that are already popular. High-quality games with small communities stay invisible — not because they're bad, but because recommendation algorithms favor games that are already mainstream.
+
+This project answers three concrete questions to help a marketing team surface those overlooked titles and promote them before they go mainstream:
+
+- **Which games have high perceived quality but low visibility?** — Identifying candidates worth promoting based on review sentiment vs. exposure gap.
+- **Which genres concentrate the most hidden gems?** — Understanding where underrated games cluster to focus discovery efforts.
+- **Which games are rising in score between extractions?** — Detecting games gaining organic traction early, before they lose their "hidden" status.
+  The output is a continuously updated ranking that a marketing team can use to build a *"Hidden Gems"* section or a personalized recommendations tab on Steam.
+
+## What is it?
 
 Most Steam users only discover games that are already popular. This project builds a **Hidden Gem Score (HGS)** — an objective, reproducible index that ranks games by their combination of perceived quality, low visibility, and accessible price. The result is an actionable list of overlooked titles that a marketing team could use to promote before they go mainstream.
 
@@ -14,80 +25,63 @@ Most Steam users only discover games that are already popular. This project buil
 HGS = (positive_review_pct × 0.50) + (obscurity_score × 0.30) + (price_score × 0.20)
 ```
 
-| Dimension | Weight | Logic |
-|---|---|---|
-| Perceived quality | 50% | % of positive reviews out of total |
-| Obscurity | 30% | Inversely proportional to total review count |
-| Accessible price | 20% | Inversely proportional to price (free-to-play supported) |
+| Dimension         | Weight | Logic                                                    |
+| ----------------- | ------ | -------------------------------------------------------- |
+| Perceived quality | 50%    | % of positive reviews out of total                       |
+| Obscurity         | 30%    | Inversely proportional to total review count             |
+| Accessible price  | 20%    | Inversely proportional to price (free-to-play supported) |
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
-Steam API (public)
-    │
-    ▼
-Python Extraction Script ──► S3 Bronze (raw JSONL)
-    │                              │
-EventBridge Scheduler              ▼
-                           AWS Glue ETL + EvaluateDataQuality
-                           (12 data quality rules)
-                                   │
-                                   ▼
-                           S3 Silver (Parquet / Snappy)
-                                   │
-                                   ▼
-                           HGS Score Calculation
-                                   │
-                                   ▼
-                           RDS PostgreSQL (Gold) ──► Streamlit Dashboard
+
 ```
 
-**Stack:**
+**Tech Stack:**
 
-- **Extraction:** Python, SteamSpy API, Steam Store API
-- **Orchestration:** AWS EventBridge Scheduler
-- **Storage:** Amazon S3 (Bronze / Silver / Gold layers)
-- **ETL & Quality:** AWS Glue Visual ETL, `EvaluateDataQuality` (12 rules)
-- **Database:** Amazon RDS PostgreSQL
-- **Dashboard:** Streamlit
-- **Monitoring:** Amazon CloudWatch
-- **Security:** AWS IAM (least privilege roles)
+- **Languages:** Python 3.10
+- **APIs:** SteamSpy API, Steam Store API
+- **AWS Services:**
+  - Orchestration: EventBridge Scheduler
+  - Storage: Amazon S3 (Bronze / Silver / Gold layers)
+  - ETL & Data Quality: AWS Glue, `EvaluateDataQuality` (12 rules)
+  - Database: Amazon RDS PostgreSQL
+  - Security: AWS IAM (least privilege roles)
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 steam-hidden-gem-score/
-├── extraction/
-│   └── extract.py          # Pulls data from SteamSpy + Steam Store APIs
-├── glue/
-│   └── glue_job.py         # AWS Glue ETL script (Bronze → Silver)
-├── scoring/
-│   └── hgs_calc.py         # Hidden Gem Score formula + Gold layer load
-├── dashboard/
-│   └── app.py              # Streamlit dashboard
-├── sql/
-│   └── schema.sql          # RDS PostgreSQL table definitions
+├── extract.py              # Pulls data from SteamSpy + Steam Store APIs
+├── glue_job.py             # AWS Glue ETL script (Bronze → Silver + DQ rules)
+├── hgs_calc.py             # Hidden Gem Score formula + Gold layer load
+├── schema.sql              # RDS PostgreSQL table definitions
+├── docs/
+│   ├── DocumentacionArquitectura.pdf  # System architecture and data flow
+│   ├── DocumentacionFuncional.pdf     # Functional requirements and scope
+│   ├── DocumentacionTecnica.pdf       # Technical design and implementation details
+│   ├── RFP.pdf                        # Request for proposal document
+│   └── SOW.pdf                        # Statement of work document
 ├── .gitignore
 └── README.md
 ```
 
 ---
 
-## 🔄 Pipeline Flow
+## Pipeline Flow
 
 1. **Extraction** — Python script queries SteamSpy and Steam Store APIs, writes raw JSONL to S3 Bronze partitioned by date (`bronze/YYYY-MM-DD/games.jsonl`).
 2. **ETL + Quality** — AWS Glue job (`TEST-GLUE-JOB-DATA-QUALITY`) reads Bronze, applies 12 data quality rules (completeness, valid ranges, logical consistency), and writes validated data to S3 Silver in Parquet/Snappy format.
 3. **Scoring** — HGS formula is applied to Silver data. Free-to-play games (price = 0) are fully supported and receive the maximum price score.
 4. **Gold Load** — Scored data is loaded into RDS PostgreSQL via JDBC for querying and dashboard consumption.
-5. **Visualization** — Streamlit dashboard allows filtering by genre, score range, price range, and extraction date.
 
 ---
 
-## ✅ Data Quality Rules (AWS Glue EvaluateDataQuality)
+## Data Quality Rules (AWS Glue EvaluateDataQuality)
 
 12 rules across three categories:
 
@@ -99,17 +93,7 @@ Only records that pass all 12 rules advance to Silver and Gold.
 
 ---
 
-## 💡 Business Questions Answered
-
-| # | Question | Layer |
-|---|---|---|
-| 1 | Which games have high perceived quality but low visibility? | Gold — HGS ranking |
-| 2 | Which genres concentrate the most hidden gems? | Gold — aggregation by genre |
-| 3 | Which games are rising in score between extractions? | Gold — historical comparison |
-
----
-
-## ⚙️ Setup & Execution
+## Setup & Execution
 
 ### Prerequisites
 
@@ -117,54 +101,8 @@ Only records that pass all 12 rules advance to Silver and Gold.
 - Python 3.10+
 - AWS CLI configured (`aws configure`)
 
-### Environment variables
-
-Create a `.env` file (never commit this):
-
-```env
-AWS_REGION=us-east-1
-S3_BUCKET=steam-hgs-data-lake
-RDS_HOST=your-rds-endpoint
-RDS_DB=steam_hgs
-RDS_USER=your-user
-RDS_PASSWORD=your-password
-```
-
-### Run the extraction manually
-
-```bash
-python extraction/extract.py
-```
-
-### Trigger the Glue job manually
-
-```bash
-aws glue start-job-run --job-name TEST-GLUE-JOB-DATA-QUALITY
-```
-
-### Check job status
-
-```bash
-aws glue get-job-runs --job-name TEST-GLUE-JOB-DATA-QUALITY --max-results 5
-```
-
-### Run the dashboard
-
-```bash
-cd dashboard
-pip install -r requirements.txt
-streamlit run app.py
-```
-
 ---
 
-## 👥 Team
-
-**Equipo 3 — Ingeniería de Datos**  
-Facultad de Ingeniería, UNAM — 2026
-
----
-
-## 📄 License
+## License
 
 Academic project. Not affiliated with Valve Corporation or Steam.
