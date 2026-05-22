@@ -64,7 +64,7 @@ steam-hidden-gem-score/
 │   ├── DocumentacionTecnica.pdf       # Technical design and implementation details
 │   ├── RFP.pdf                        # Request for proposal document
 │   └── SOW.pdf                        # Statement of work document
-├── .gitignore
+├── .gitignore                         
 └── README.md
 ```
 
