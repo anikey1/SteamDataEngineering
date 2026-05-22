@@ -104,3 +104,5 @@ Only records that pass all 12 rules advance to Silver and Gold.
 ## License
 
 Academic project. Not affiliated with Valve Corporation or Steam.
+
+
