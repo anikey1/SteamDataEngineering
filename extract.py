@@ -18,7 +18,7 @@ except ImportError:
     NoCredentialsError = Exception
 
 # ---------------------------------------------------------------------------
-# Configuracion principal (edita aqui)
+# Main configuration (edit here)
 # ---------------------------------------------------------------------------
 
 STEAM_API_KEY = "1A6A9917751AA6584621D8B62432F2C0"
@@ -38,8 +38,8 @@ DEFAULT_REQUEST_DELAY = 0.25
 SESSION = requests.Session()
 SESSION.headers.update(HEADERS)
 
-# Perfil activo para la corrida.
-# Opciones: "estricto" | "exploracion"
+# Active profile for the current run.
+# Options: "estricto" | "exploracion"
 ACTIVE_PROFILE = "exploracion"
 
 PROFILE_PRESETS: dict[str, dict[str, Any]] = {
@@ -62,11 +62,11 @@ PROFILE_PRESETS: dict[str, dict[str, Any]] = {
     },
 }
 
-# Overrides opcionales sobre el perfil activo.
+# Optional overrides applied on top of the active profile.
 PROFILE_OVERRIDES: dict[str, Any] = {}
 
 # ---------------------------------------------------------------------------
-# Configuracion S3 (edita aqui)
+# S3 configuration (edit here)
 # ---------------------------------------------------------------------------
 
 S3_UPLOAD_ENABLED = True
@@ -77,21 +77,21 @@ S3_INCLUDE_INDIVIDUAL_FILES = False
 
 
 # ---------------------------------------------------------------------------
-# Utilidades de configuracion
+# Configuration utilities
 # ---------------------------------------------------------------------------
 
 def get_runtime_config() -> dict[str, Any]:
     if ACTIVE_PROFILE not in PROFILE_PRESETS:
         raise ValueError(
-            f"ACTIVE_PROFILE invalido: {ACTIVE_PROFILE}. "
-            f"Opciones: {', '.join(sorted(PROFILE_PRESETS))}"
+            f"Invalid ACTIVE_PROFILE: {ACTIVE_PROFILE}. "
+            f"Options: {', '.join(sorted(PROFILE_PRESETS))}"
         )
 
     base_cfg = dict(PROFILE_PRESETS[ACTIVE_PROFILE])
     invalid_override_keys = sorted(set(PROFILE_OVERRIDES) - set(base_cfg))
     if invalid_override_keys:
         raise ValueError(
-            "PROFILE_OVERRIDES contiene claves invalidas: "
+            "PROFILE_OVERRIDES contains invalid keys: "
             + ", ".join(invalid_override_keys)
         )
 
@@ -100,11 +100,11 @@ def get_runtime_config() -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Funciones HTTP con reintento
+# HTTP helpers with retry logic
 # ---------------------------------------------------------------------------
 
 def request_json(url: str, params: dict[str, Any] | None = None, timeout: int = 25, retries: int = 5) -> dict:
-    """Hace una peticion JSON con reintentos simples."""
+    """Makes a JSON request with simple retry logic."""
     last_exc: Exception | None = None
 
     for attempt in range(1, retries + 1):
@@ -130,8 +130,8 @@ def request_json(url: str, params: dict[str, Any] | None = None, timeout: int = 
 
                     wait_seconds = retry_after_seconds or max(6 * attempt, 8)
                     print(
-                        "[RATE LIMIT] 429 en "
-                        f"{url}. Reintentando en {wait_seconds}s "
+                        "[RATE LIMIT] 429 on "
+                        f"{url}. Retrying in {wait_seconds}s "
                         f"({attempt}/{retries})"
                     )
                     time.sleep(wait_seconds)
@@ -146,7 +146,7 @@ def request_json(url: str, params: dict[str, Any] | None = None, timeout: int = 
 
 
 def request_text(url: str, params: dict[str, Any] | None = None, timeout: int = 25, retries: int = 3) -> str:
-    """Hace una peticion de texto/HTML con reintentos simples."""
+    """Makes a text/HTML request with simple retry logic."""
     last_exc: Exception | None = None
 
     for attempt in range(1, retries + 1):
@@ -163,11 +163,11 @@ def request_text(url: str, params: dict[str, Any] | None = None, timeout: int = 
 
 
 # ---------------------------------------------------------------------------
-# Funciones de acceso a la API
+# Steam API access functions
 # ---------------------------------------------------------------------------
 
 def get_games_by_concurrent_players(limit: int = 100) -> list[dict]:
-    """Devuelve ranking oficial de concurrencia de Steam API (top publico)."""
+    """Returns the official Steam concurrent players ranking (public top list)."""
     url = f"{BASE_API}/ISteamChartsService/GetGamesByConcurrentPlayers/v1/"
     params: dict[str, str] = {}
 
@@ -180,10 +180,10 @@ def get_games_by_concurrent_players(limit: int = 100) -> list[dict]:
 
 
 def extract_appids_from_search_html(results_html: str) -> list[int]:
-    """Extrae appids de resultados HTML del buscador de Steam Store."""
+    """Extracts appids from Steam Store search results HTML."""
     appids: list[int] = []
 
-    # Soporta data-ds-appid="123" y data-ds-appid="[123,456]"
+    # Supports both data-ds-appid="123" and data-ds-appid="[123,456]"
     for raw_value in re.findall(r'data-ds-appid="([^"]+)"', results_html):
         value = raw_value.strip()
 
@@ -206,7 +206,7 @@ def collect_store_top_reviewed_appids(
     delay: float,
     language: str,
 ) -> tuple[list[int], int]:
-    """Recolecta appids paginando Steam Store por sort de reseñas."""
+    """Collects appids by paginating the Steam Store sorted by reviews."""
     seen: set[int] = set()
     appids: list[int] = []
     total_count = 0
@@ -249,7 +249,7 @@ def collect_store_top_reviewed_appids(
 
 
 def collect_steamcharts_top_appids(pages: int, delay: float) -> list[int]:
-    """Recolecta appids desde SteamCharts paginado (/top, /top/p.2, ...)."""
+    """Collects appids from paginated SteamCharts (/top, /top/p.2, ...)."""
     seen: set[int] = set()
     appids: list[int] = []
 
@@ -277,7 +277,7 @@ def collect_steamcharts_top_appids(pages: int, delay: float) -> list[int]:
 
 
 def get_app_details(appid: int) -> dict:
-    """Devuelve metadatos de tienda de un appid."""
+    """Returns store metadata for a given appid."""
     url = f"{BASE_STORE}/api/appdetails"
     params = {"appids": appid, "l": "spanish"}
 
@@ -286,7 +286,7 @@ def get_app_details(appid: int) -> dict:
 
 
 def get_app_reviews(appid: int, num_per_page: int = 5) -> dict:
-    """Devuelve resumen de valoracion y una muestra corta de reseñas recientes."""
+    """Returns the review summary and a short sample of recent reviews."""
     url = f"{BASE_STORE}/appreviews/{appid}"
     params = {
         "json": 1,
@@ -301,7 +301,7 @@ def get_app_reviews(appid: int, num_per_page: int = 5) -> dict:
 
 
 def get_current_players(appid: int) -> int | None:
-    """Devuelve jugadores actuales para un appid mediante ISteamUserStats."""
+    """Returns the current player count for an appid via ISteamUserStats."""
     url = f"{BASE_API}/ISteamUserStats/GetNumberOfCurrentPlayers/v1/"
     params: dict[str, int | str] = {"appid": appid}
 
@@ -319,11 +319,11 @@ def get_current_players(appid: int) -> int | None:
 
 
 # ---------------------------------------------------------------------------
-# Utilidades
+# Utilities
 # ---------------------------------------------------------------------------
 
 def normalize_text(text: str | None) -> str:
-    """Normaliza texto para comparar sin depender de acentos o mayusculas."""
+    """Normalizes text for accent- and case-insensitive comparison."""
     if not text:
         return ""
 
@@ -333,7 +333,7 @@ def normalize_text(text: str | None) -> str:
 
 
 def to_int(value: Any) -> int | None:
-    """Convierte valores a int de forma segura."""
+    """Safely converts a value to int, returning None on failure."""
     try:
         return int(value)
     except (TypeError, ValueError):
@@ -341,7 +341,7 @@ def to_int(value: Any) -> int | None:
 
 
 def is_target_review_label(score_desc: str | None, allow_very_positive: bool) -> bool:
-    """Valida si la etiqueta de reseñas cumple el filtro de calidad."""
+    """Checks whether the review label meets the quality filter."""
     value = normalize_text(score_desc)
 
     if value in {"extremadamente positivas", "overwhelmingly positive"}:
@@ -354,7 +354,7 @@ def is_target_review_label(score_desc: str | None, allow_very_positive: bool) ->
 
 
 def safe_filename(text: str) -> str:
-    """Convierte un texto en nombre de archivo seguro."""
+    """Converts a string into a safe filesystem filename."""
     cleaned = "".join(c if c.isalnum() or c in " _-" else "" for c in text).strip()
     return cleaned.replace(" ", "_") or "sin_nombre"
 
@@ -365,7 +365,7 @@ def save_json(path: Path, data: Any) -> None:
 
 
 def save_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
-    """Guarda registros JSON Lines (un objeto JSON por linea)."""
+    """Saves records as JSON Lines (one JSON object per line)."""
     with open(path, "w", encoding="utf-8") as f:
         for row in rows:
             f.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")))
@@ -381,7 +381,7 @@ def build_entry(
     current_players: int | None,
     cfg: dict[str, Any],
 ) -> dict:
-    """Combina informacion de fuentes hibridas en una salida unificada."""
+    """Merges data from hybrid sources into a single unified output record."""
     summary = reviews_payload.get("query_summary", {})
     metacritic = details.get("metacritic") or {}
 
@@ -411,7 +411,7 @@ def build_entry(
 
 
 # ---------------------------------------------------------------------------
-# S3
+# S3 upload helpers
 # ---------------------------------------------------------------------------
 
 def _normalize_prefix(prefix: str | None) -> str:
@@ -433,7 +433,7 @@ def upload_json_run_to_s3(
     region_name: str | None = None,
     include_individual_files: bool = True,
 ) -> dict[str, Any]:
-    """Sube los JSON de una corrida a S3 y devuelve un resumen."""
+    """Uploads the JSON files from a run folder to S3 and returns a summary."""
     if boto3 is None:
         raise RuntimeError("boto3 no esta instalado. Ejecuta: pip install boto3")
 
@@ -483,7 +483,7 @@ def upload_json_run_to_s3(
 
 
 # ---------------------------------------------------------------------------
-# Script principal
+# Main script
 # ---------------------------------------------------------------------------
 
 def main() -> None:
