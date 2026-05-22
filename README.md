@@ -35,7 +35,7 @@ HGS = (positive_review_pct × 0.50) + (obscurity_score × 0.30) + (price_score �
 
 ## Architecture
 
-![Architecture diagram](docs/architecture.jpeg)
+![Architecture diagram](img/architecture.jpeg)
 
 **Tech Stack:**
 
@@ -64,7 +64,7 @@ steam-hidden-gem-score/
 │   ├── DocumentacionTecnica.pdf       # Technical design and implementation details
 │   ├── RFP.pdf                        # Request for proposal document
 │   └── SOW.pdf                        # Statement of work document
-├── .gitignore                         
+├── .gitignore                       
 └── README.md
 ```
 
