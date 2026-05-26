@@ -91,7 +91,7 @@ steam-hidden-gem-score/
 ├── .gitignore
 └── README.md
 ```
-```
+
 
 ---
 
