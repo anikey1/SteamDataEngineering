@@ -66,6 +66,7 @@ steam-hidden-gem-score/
 │
 ├── img/
 │   ├── EC2-Instances.png             # AWS EC2 screenshots
+|   ├── diagramaSecuencia.png         # Sequence diagram
 │   ├── Glue-Silver.png               # AWS Glue processing layer
 │   ├── RDS-Gold.png                  # PostgreSQL Gold layer
 │   ├── S3-Bucket.png                 # S3 bucket configuration
