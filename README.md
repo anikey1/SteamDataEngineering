@@ -53,19 +53,37 @@ HGS = (positive_review_pct × 0.50) + (obscurity_score × 0.30) + (price_score �
 ## Project Structure
 
 ```
+## Project Structure
+
+```text
 steam-hidden-gem-score/
-├── extract.py              # Pulls data from SteamSpy + Steam Store APIs
-├── glue_job.py             # AWS Glue ETL script (Bronze → Silver + DQ rules)
-├── hgs_calc.py             # Hidden Gem Score formula + Gold layer load
-├── schema.sql              # RDS PostgreSQL table definitions
+├── data/
+│   ├── raw/                     # Raw extracted data from Steam APIs
+│   ├── processed/               # Cleaned/transformed datasets
+│   └── curated/                 # Gold layer datasets for analytics
+│
+├── scripts/
+│   ├── extract.py               # Extract data from SteamSpy + Steam Store APIs
+│   ├── glue_job.py              # AWS Glue ETL pipeline (Bronze → Silver)
+│   └── hgs_calc.py              # Hidden Gem Score calculation and Gold load
+│
+├── sql/
+│   └── schema.sql               # PostgreSQL schema definitions
+│
 ├── docs/
-│   ├── DocumentacionArquitectura.pdf  # System architecture and data flow
-│   ├── DocumentacionFuncional.pdf     # Functional requirements and scope
-│   ├── DocumentacionTecnica.pdf       # Technical design and implementation details
-│   ├── RFP.pdf                        # Request for proposal document
-│   └── SOW.pdf                        # Statement of work document
-├── .gitignore                       
-└── README.md
+│   ├── DocumentacionArquitectura.pdf
+│   ├── DocumentacionFuncional.pdf
+│   ├── DocumentacionTecnica.pdf
+│   ├── RFP.pdf
+│   └── SOW.pdf
+│
+├── notebooks/
+│   └── exploratory_analysis.ipynb   # Optional data exploration notebooks
+│
+├── requirements.txt             # Python dependencies
+├── .gitignore
+├── README.md
+└── LICENSE
 ```
 
 ---
