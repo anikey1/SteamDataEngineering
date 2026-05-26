@@ -57,33 +57,40 @@ HGS = (positive_review_pct × 0.50) + (obscurity_score × 0.30) + (price_score �
 
 ```text
 steam-hidden-gem-score/
-├── data/
-│   ├── raw/                     # Raw extracted data from Steam APIs
-│   ├── processed/               # Cleaned/transformed datasets
-│   └── curated/                 # Gold layer datasets for analytics
-│
-├── scripts/
-│   ├── extract.py               # Extract data from SteamSpy + Steam Store APIs
-│   ├── glue_job.py              # AWS Glue ETL pipeline (Bronze → Silver)
-│   └── hgs_calc.py              # Hidden Gem Score calculation and Gold load
-│
-├── sql/
-│   └── schema.sql               # PostgreSQL schema definitions
+├── deploy/
+│   └── Deploy.pdf                     # Deployment configuration and setup
 │
 ├── docs/
-│   ├── DocumentacionArquitectura.pdf
-│   ├── DocumentacionFuncional.pdf
-│   ├── DocumentacionTecnica.pdf
-│   ├── RFP.pdf
-│   └── SOW.pdf
+│   ├── DocumentacionArquitectura.pdf # System architecture documentation
+│   ├── DocumentacionFuncional.pdf    # Functional requirements
+│   ├── DocumentacionTecnica.pdf      # Technical implementation details
+│   ├── RFP.pdf                       # Request for Proposal
+│   └── SOW.pdf                       # Statement of Work
 │
-├── notebooks/
-│   └── exploratory_analysis.ipynb   # Optional data exploration notebooks
+├── img/
+│   ├── EC2-Instances.png             # AWS EC2 screenshots
+│   ├── Glue-Silver.png               # AWS Glue processing layer
+│   ├── RDS-Gold.png                  # PostgreSQL Gold layer
+│   ├── S3-Bucket.png                 # S3 bucket configuration
+│   ├── S3-Buckets.png                # Multiple S3 buckets architecture
+│   └── architecture.jpeg             # Overall system architecture diagram
 │
-├── requirements.txt             # Python dependencies
+├── ppt/
+│   └── SteamHiddenGemScore.pdf       # Project presentation
+│
+├── src/
+│   ├── extract.py                    # Steam API extraction pipeline
+│   ├── glue_job.py                   # AWS Glue ETL process
+│   ├── hgs_calc.py                   # Hidden Gem Score calculation
+│   └── schema.sql                    # PostgreSQL schema definitions
+│
+├── tests/
+│   └── test_extract.py               # Unit tests for extraction module
+│
+├── .gitattributes
 ├── .gitignore
-├── README.md
-└── LICENSE
+└── README.md
+```
 ```
 
 ---
