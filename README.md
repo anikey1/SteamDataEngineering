@@ -13,7 +13,7 @@ This project answers three concrete questions to help a marketing team surface t
 - **Which games have high perceived quality but low visibility?** — Identifying candidates worth promoting based on review sentiment vs. exposure gap.
 - **Which genres concentrate the most hidden gems?** — Understanding where underrated games cluster to focus discovery efforts.
 - **Which games are rising in score between extractions?** — Detecting games gaining organic traction early, before they lose their "hidden" status.
-  The output is a continuously updated ranking that a marketing team can use to build a *"Hidden Gems"* section or a personalized recommendations tab on Steam.
+  The output is a continuously updated ranking that a marketing team can use to build a _"Hidden Gems"_ section or a personalized recommendations tab on Steam.
 
 ## What is it?
 
@@ -53,9 +53,6 @@ HGS = (positive_review_pct × 0.50) + (obscurity_score × 0.30) + (price_score �
 ## Project Structure
 
 ```
-## Project Structure
-
-```text
 steam-hidden-gem-score/
 ├── deploy/
 │   └── Deploy.pdf                     # Deployment configuration and setup
@@ -91,7 +88,6 @@ steam-hidden-gem-score/
 ├── .gitignore
 └── README.md
 ```
-
 
 ---
 
@@ -129,5 +125,3 @@ Only records that pass all 12 rules advance to Silver and Gold.
 ## License
 
 Academic project. Not affiliated with Valve Corporation or Steam.
-
-
